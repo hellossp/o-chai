@@ -145,12 +145,12 @@ export function useFrameLoader(): FrameLoaderResult {
       const initialBatch = Math.min(activeManifest.initialBatchSize, total);
       framesRef.current = new Array(total).fill(null);
 
-      // Phase 1: Load initial batch for fast first render
+      // Phase 1: Rapidly load initial batch (10 frames ~0.5s) to unlock screen instantly
       for (let i = 0; i < initialBatch; i++) {
         if (isCancelled) return;
         const frame = await loadSingleFrame(i, activeManifest);
         framesRef.current[i] = frame;
-        const p = Math.round(((i + 1) / total) * 100);
+        const p = Math.round(((i + 1) / initialBatch) * 100);
         setProgress(p);
       }
 
@@ -158,15 +158,11 @@ export function useFrameLoader(): FrameLoaderResult {
         setIsInitialReady(true);
       }
 
-      // Phase 2: Asynchronously load remaining frames in background
-      let loadedCount = initialBatch;
+      // Phase 2: Asynchronously stream remaining 250 frames silently in background
       for (let i = initialBatch; i < total; i++) {
         if (isCancelled) return;
         const frame = await loadSingleFrame(i, activeManifest);
         framesRef.current[i] = frame;
-        loadedCount++;
-        const p = Math.round((loadedCount / total) * 100);
-        setProgress(p);
       }
 
       if (!isCancelled) {

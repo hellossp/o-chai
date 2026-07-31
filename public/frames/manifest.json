@@ -4,5 +4,5 @@
   "padding": 3,
   "framePrefix": "ezgif-frame-",
   "pixelsPerFrame": 15,
-  "initialBatchSize": 20
+  "initialBatchSize": 10
 }

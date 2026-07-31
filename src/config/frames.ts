@@ -13,7 +13,7 @@ export const DEFAULT_MANIFEST: FrameManifest = {
   padding: 3,
   framePrefix: "ezgif-frame-",
   pixelsPerFrame: 15,
-  initialBatchSize: 20,
+  initialBatchSize: 10,
 };
 
 export function formatFrameFilename(index: number, manifest: FrameManifest = DEFAULT_MANIFEST): string {

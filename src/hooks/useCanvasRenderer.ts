@@ -10,7 +10,7 @@ export interface CanvasDimensions {
 
 export function useCanvasRenderer(
   canvasRef: React.RefObject<HTMLCanvasElement>,
-  currentFrame: ImageBitmap | HTMLCanvasElement | null,
+  currentFrame: HTMLImageElement | ImageBitmap | HTMLCanvasElement | null,
   containerRef: React.RefObject<HTMLDivElement>
 ) {
   const dimensionsRef = useRef<CanvasDimensions>({ width: 0, height: 0, dpr: 1 });
@@ -19,7 +19,13 @@ export function useCanvasRenderer(
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+
+    // Hardware accelerated desynchronized 2D context with no alpha channel overhead
+    const ctx = canvas.getContext("2d", {
+      alpha: false,
+      desynchronized: true,
+      willReadFrequently: false,
+    });
     if (!ctx) return;
 
     const { width, height, dpr } = dimensionsRef.current;
@@ -34,17 +40,17 @@ export function useCanvasRenderer(
     ctx.save();
     ctx.scale(dpr, dpr);
 
-    // High quality image smoothing
+    // Dynamic image smoothing quality based on device screen size
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
+    ctx.imageSmoothingQuality = width < 768 ? "medium" : "high";
 
-    // Fill canvas background with warm #AB7E5D to prevent any grey reload flash
+    // Fill canvas background with warm #AB7E5D to prevent any reload flash
     ctx.fillStyle = "#AB7E5D";
     ctx.fillRect(0, 0, width, height);
 
     if (currentFrame) {
-      const imgWidth = currentFrame.width || 1920;
-      const imgHeight = currentFrame.height || 1080;
+      const imgWidth = currentFrame.width || (currentFrame as HTMLImageElement).naturalWidth || 1920;
+      const imgHeight = currentFrame.height || (currentFrame as HTMLImageElement).naturalHeight || 1080;
 
       // Object-fit: cover matrix calculation
       const containerRatio = width / height;
@@ -74,7 +80,11 @@ export function useCanvasRenderer(
     const updateDimensions = () => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const isMobile = rect.width < 768;
+
+      // Cap device pixel ratio on mobile (1.5x max) for 60fps mobile GPU rendering
+      const maxDpr = isMobile ? 1.5 : 2;
+      const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
 
       dimensionsRef.current = {
         width: rect.width,

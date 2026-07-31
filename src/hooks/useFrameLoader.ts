@@ -5,7 +5,7 @@ import { FrameManifest, DEFAULT_MANIFEST, getFramePath } from "@/config/frames";
 
 export interface FrameLoaderResult {
   manifest: FrameManifest;
-  frames: (ImageBitmap | HTMLCanvasElement | null)[];
+  frames: (HTMLImageElement | ImageBitmap | HTMLCanvasElement | null)[];
   progress: number;
   isInitialReady: boolean;
   isFullyLoaded: boolean;
@@ -16,7 +16,7 @@ function createProceduralFrameCanvas(index: number, total: number): HTMLCanvasEl
   const canvas = document.createElement("canvas");
   canvas.width = 1920;
   canvas.height = 1080;
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d", { alpha: false });
   if (!ctx) return canvas;
 
   const t = index / Math.max(total - 1, 1);
@@ -95,9 +95,9 @@ export function useFrameLoader(): FrameLoaderResult {
   const [progress, setProgress] = useState(0);
   const [isInitialReady, setIsInitialReady] = useState(false);
   const [isFullyLoaded, setIsFullyLoaded] = useState(false);
-  const framesRef = useRef<(ImageBitmap | HTMLCanvasElement | null)[]>([]);
+  const framesRef = useRef<(HTMLImageElement | ImageBitmap | HTMLCanvasElement | null)[]>([]);
 
-  const loadSingleFrame = useCallback(async (index: number, currentManifest: FrameManifest): Promise<ImageBitmap | HTMLCanvasElement | null> => {
+  const loadSingleFrame = useCallback(async (index: number, currentManifest: FrameManifest): Promise<HTMLImageElement | ImageBitmap | HTMLCanvasElement | null> => {
     const path = getFramePath(index, currentManifest);
     try {
       const img = new Image();
@@ -109,14 +109,26 @@ export function useFrameLoader(): FrameLoaderResult {
         img.onerror = () => reject();
       });
 
-      if ("createImageBitmap" in window) {
-        const bitmap = await createImageBitmap(img);
-        return bitmap;
-      } else if (img.decode) {
+      if (img.decode) {
         await img.decode();
-        return img as unknown as ImageBitmap;
       }
-      return img as unknown as ImageBitmap;
+
+      // Check if mobile device
+      const isMobile = typeof window !== "undefined" && (
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        window.innerWidth < 768
+      );
+
+      // On mobile phones, return lightweight HTMLImageElement directly to save 2GB RAM & eliminate GPU lag!
+      if (isMobile) {
+        return img;
+      }
+
+      // Desktop: use createImageBitmap if available
+      if ("createImageBitmap" in window) {
+        return await createImageBitmap(img);
+      }
+      return img;
     } catch {
       // Return procedural canvas fallback with #AB7E5D background
       return createProceduralFrameCanvas(index, currentManifest.totalFrames);
@@ -158,7 +170,7 @@ export function useFrameLoader(): FrameLoaderResult {
         setIsInitialReady(true);
       }
 
-      // Phase 2: Asynchronously stream remaining 250 frames silently in background
+      // Phase 2: Asynchronously stream remaining frames silently in background
       for (let i = initialBatch; i < total; i++) {
         if (isCancelled) return;
         const frame = await loadSingleFrame(i, activeManifest);

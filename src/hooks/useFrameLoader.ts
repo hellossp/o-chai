@@ -109,28 +109,23 @@ export function useFrameLoader(): FrameLoaderResult {
         img.onerror = () => reject();
       });
 
-      if (img.decode) {
-        await img.decode();
-      }
-
-      // Check if mobile device
+      // Mobile check
       const isMobile = typeof window !== "undefined" && (
         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
         window.innerWidth < 768
       );
 
-      // On mobile phones, return lightweight HTMLImageElement directly to save 2GB RAM & eliminate GPU lag!
+      // On mobile devices, return HTMLImageElement directly without uncompressing heavy bitmaps
       if (isMobile) {
         return img;
       }
 
-      // Desktop: use createImageBitmap if available
+      // Desktop: use createImageBitmap if supported
       if ("createImageBitmap" in window) {
         return await createImageBitmap(img);
       }
       return img;
     } catch {
-      // Return procedural canvas fallback with #AB7E5D background
       return createProceduralFrameCanvas(index, currentManifest.totalFrames);
     }
   }, []);
@@ -141,7 +136,6 @@ export function useFrameLoader(): FrameLoaderResult {
     async function initLoader() {
       let activeManifest = DEFAULT_MANIFEST;
 
-      // Try fetching public/frames/manifest.json
       try {
         const res = await fetch("/frames/manifest.json");
         if (res.ok) {
@@ -170,7 +164,7 @@ export function useFrameLoader(): FrameLoaderResult {
         setIsInitialReady(true);
       }
 
-      // Phase 2: Asynchronously stream remaining frames silently in background
+      // Phase 2: Asynchronously load remaining frames
       for (let i = initialBatch; i < total; i++) {
         if (isCancelled) return;
         const frame = await loadSingleFrame(i, activeManifest);
@@ -186,7 +180,6 @@ export function useFrameLoader(): FrameLoaderResult {
 
     return () => {
       isCancelled = true;
-      // Clean up bitmaps to avoid memory leaks
       framesRef.current.forEach((item) => {
         if (item && "close" in item && typeof item.close === "function") {
           (item as ImageBitmap).close();

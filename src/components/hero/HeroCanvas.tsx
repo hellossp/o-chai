@@ -4,14 +4,14 @@ import { useRef } from "react";
 import { useCanvasRenderer } from "@/hooks/useCanvasRenderer";
 
 interface HeroCanvasProps {
-  currentFrame: ImageBitmap | HTMLCanvasElement | null;
+  currentFrame: HTMLImageElement | ImageBitmap | HTMLCanvasElement | null;
   containerRef: React.RefObject<HTMLDivElement>;
 }
 
 export function HeroCanvas({ currentFrame, containerRef }: HeroCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // High-DPI, object-fit cover stateless canvas renderer with dynamic transparent background removal
+  // High-DPI, object-fit cover stateless canvas renderer
   useCanvasRenderer(canvasRef, currentFrame, containerRef);
 
   return (

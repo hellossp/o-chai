@@ -1,0 +1,8 @@
+{
+  "totalFrames": 260,
+  "extension": "jpg",
+  "padding": 3,
+  "framePrefix": "ezgif-frame-",
+  "pixelsPerFrame": 15,
+  "initialBatchSize": 20
+}

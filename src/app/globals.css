@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-cream: #AB7E5D;
+  --chai-brown: #59351C;
+  --dark-brown: #24130B;
+  --sec-cream: #F8F3EC;
+  --border-warm: #946949;
+}
+
+html, body {
+  background-color: #AB7E5D;
+  color: #24130B;
+  font-family: var(--font-manrope), sans-serif;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom minimal scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #AB7E5D;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #946949;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #59351C;
+}
+
+/* Typography Helpers */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-cormorant), Georgia, serif;
+}
+
+/* Smooth Canvas Frame Scrub Container */
+.pin-spacer {
+  background-color: #AB7E5D !important;
+}
+
+/* Canvas container styling */
+canvas {
+  touch-action: none;
+  pointer-events: none;
+  background-color: #AB7E5D;
+}
+
+/* Selection highlight */
+::selection {
+  background-color: #946949;
+  color: #F8F3EC;
+}

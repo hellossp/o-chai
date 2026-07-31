@@ -35,10 +35,10 @@ export function HeroOverlay({ onExploreClick }: HeroOverlayProps) {
       ref={containerRef}
       className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-auto bg-gradient-to-b from-black/25 via-transparent to-black/35 px-4 sm:px-6"
     >
-      {/* Content Container - Official O' Chai Brand Logo Artwork (Original Sizing) */}
+      {/* Content Container - Official O' Chai Brand Logo Artwork (Optically Centered) */}
       <div className="relative z-10 flex flex-col items-center text-center max-w-lg space-y-6 sm:space-y-8">
-        {/* Official Brand Logo Image */}
-        <div className="relative w-64 xs:w-72 sm:w-80 md:w-96 aspect-square flex items-center justify-center">
+        {/* Official Brand Logo Image - Shifted slightly right for optical centering */}
+        <div className="relative w-64 xs:w-72 sm:w-80 md:w-96 aspect-square flex items-center justify-center translate-x-1.5 sm:translate-x-2.5">
           <Image
             src="/logo.png"
             alt="O' Chai Official Brand Logo"
